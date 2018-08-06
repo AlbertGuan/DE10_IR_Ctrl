@@ -1,3 +1,5 @@
-module AC_RECEIVER
+module AC_RECEIVER(
+		input			clk
+	)
 
 endmodule
