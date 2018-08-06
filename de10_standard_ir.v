@@ -111,7 +111,6 @@ assign  LEDR = SW;
 //=============================================================================
 
 wire  data_ready;        //IR data_ready flag
-//reg   data_read;         //read 
 wire  [31:0] hex_data;   //seg data input
 
 //---IR Receiver module---//			  
@@ -123,9 +122,8 @@ IR_RECEIVE u1(
 					//IRDA code input
 					.data_in(IRDA_RXD), 
 					//read command      
-					//.iREAD(data_read),
 					//data ready      					
-					.data_ready_out(data_ready),
+					.data_ready(data_ready),
 					//decoded data 32bit
 					.data_out(hex_data)        
 					);
@@ -164,7 +162,23 @@ SEG_HEX u7(//display the HEX on HEX5
            .oHEX_D(HEX5)
            );
 
-			  
+parameter signalTap_count = 200;
+reg	[11:0] 	us_count;
+reg				clk_38;
+always @(posedge CLOCK_50)
+begin
+	if (us_count <= signalTap_count)
+		us_count <= us_count + 1'b1;
+	else
+		us_count <= 1'b1;
+end
+
+always @(posedge CLOCK_50)
+begin
+	if (us_count == signalTap_count)
+		clk_38 = ~clk_38;
+end
+
 /////////////////////////////////////////////////////////
 //  TX test pattern . (Simple) 
 /////////////////////////////////////////////////////////
@@ -193,6 +207,7 @@ end
 
         	.iCLK_50(CLOCK_50),
          .iRST_n(1'b1),
+			.clk_38(clk_38),
          .iADDRESS(test_data[15:8]), // 8bits Address 
          .iCOMMAND(test_data[7:0]),  // 8bits Command
 			.iSEND(data_send),

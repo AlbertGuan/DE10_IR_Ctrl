@@ -3,6 +3,7 @@ module IR_TRANSMITTER_Terasic(
 
 input 	       iCLK_50,          //iCLK = 50MHz
 input           iRST_n,
+input					clk_38,
 
  //Send data will add their inverted data,LSB first(NEC protocol). you can impelement your own format if needed
 input  [7:0]    iADDRESS, // 8bits Address 
