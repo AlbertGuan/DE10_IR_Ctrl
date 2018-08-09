@@ -61,7 +61,7 @@ begin
 	end
 end
 
-//Leading low phase, 9ms
+//Leading low phase
 always @(posedge clk or negedge rst_n)
 begin
 	if (!rst_n)
@@ -98,7 +98,10 @@ end
 always @(posedge clk or negedge rst_n)
 begin
 	if (!rst_n)
+	begin
 		bitcount <= 6'b0;
+		data_buf <= 0;
+	end
 	else if (state == DATA_TRANSFER)
 	begin
 		if (data_count == MIN_BIT_VALID)

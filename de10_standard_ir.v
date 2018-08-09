@@ -115,18 +115,17 @@ wire  [31:0] hex_data;   //seg data input
 
 //---IR Receiver module---//			  
 IR_RECEIVE u1(
-					///clk 50MHz////
-					.clk(CLOCK_50), 
-					//reset          
-					.rst_n(1'b1),        
-					//IRDA code input
-					.data_in(IRDA_RXD), 
-					//read command      
-					//data ready      					
-					.data_ready(data_ready),
-					//decoded data 32bit
-					.data_out(hex_data)        
-					);
+				///clk 50MHz////
+				.clk(CLOCK_50), 
+				//reset          
+				.rst_n(1'b1),        
+				//IRDA code input
+				.data_in(IRDA_RXD), 
+				//read command
+				.data_ready(data_ready),
+				//decoded data 32bit
+				.data_out(hex_data)        
+);
 //   hex_data
 //   invert data 8bits + data 8bits + invert address 8bits + address_8bits
 //   [31:24]             [23:16]    + [15:8]               + [7:0]
@@ -162,7 +161,7 @@ SEG_HEX u7(//display the HEX on HEX5
            .oHEX_D(HEX5)
            );
 
-parameter signalTap_count = 200;
+parameter signalTap_count = 1200;
 reg	[11:0] 	us_count;
 reg				clk_38;
 always @(posedge CLOCK_50)
@@ -201,20 +200,29 @@ always @(posedge CLOCK_50 )
      end
 end
 
-///////////////////////
-	
- IR_TRANSMITTER_Terasic  u_tx(
 
-        	.iCLK_50(CLOCK_50),
-         .iRST_n(1'b1),
-			.clk_38(clk_38),
-         .iADDRESS(test_data[15:8]), // 8bits Address 
-         .iCOMMAND(test_data[7:0]),  // 8bits Command
-			.iSEND(data_send),
-         .oIR_TX_BUSY(tx_busy),
-         .oIRDA(IRDA_TXD)		
-		);
+IR_TRANSMITTER_Terasic  u_tx(
 
+        .iCLK_50(CLOCK_50),
+        .iRST_n(1'b1),
+		.clk_38(clk_38),
+        .iADDRESS(test_data[15:8]), // 8bits Address 
+        .iCOMMAND(test_data[7:0]),  // 8bits Command
+		.iSEND(data_send),
+        .oIR_TX_BUSY(tx_busy),
+        .oIRDA(IRDA_TXD)		
+);
 
+wire				ac_data_ready;
+wire	[127:0]		ac_data_out;
+wire	[32:0]		ac_data_len;
+AC_RECEIVER		ac_receiver_inst(
+		.clk(CLOCK_50),
+		.rst_n(1'b1),
+		.data_in(IRDA_RXD),
+		.data_ready(ac_data_ready),
+		.data_out(ac_data_out),
+		.data_len(ac_data_len)
+);
 
 endmodule
