@@ -83,7 +83,7 @@ always @(iDIG)
 			4'hd: oHEX_D <= 7'b0100001; //d
 			4'he: oHEX_D <= 7'b0000110; //e
 			4'hf: oHEX_D <= 7'b0001110; //f
-	     default: oHEX_D <= 7'b1000000; //0
+	     default: oHEX_D <= 7'b1111111; //0
 			endcase
 		end
 

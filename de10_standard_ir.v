@@ -136,28 +136,28 @@ IR_RECEIVE u1(
 // HEX5-4  invert data 8bits [31:24]
 // so HEX3-0 shows  the  16bits send data (8bits addr + 8bits data)
 
-SEG_HEX u2( //display the HEX on HEX0                               
+SEG_HEX hex0( //display the HEX on HEX0                               
 			  .iDIG(hex_data[19:16]),         
 			  .oHEX_D(HEX0)
 		     );  
-SEG_HEX u3( //display the HEX on HEX1                                
+SEG_HEX hex1( //display the HEX on HEX1                                
            .iDIG(hex_data[23:20]),
            .oHEX_D(HEX1)
            );
-SEG_HEX u4(//display the HEX on HEX2                                
+SEG_HEX hex2(//display the HEX on HEX2                                
            .iDIG(hex_data[3:0]),
            .oHEX_D(HEX2)
            );
-SEG_HEX u5(//display the HEX on HEX3                                 
+SEG_HEX hex3(//display the HEX on HEX3                                 
            .iDIG(hex_data[7:4]),
            .oHEX_D(HEX3)
            );
-SEG_HEX u6(//display the HEX on HEX4                                 
-           .iDIG(hex_data[27:24]),
+SEG_HEX hex4(//display the HEX on HEX4                                 
+           .iDIG(4'hf),
            .oHEX_D(HEX4)
            );
-SEG_HEX u7(//display the HEX on HEX5                                 
-           .iDIG(hex_data[31:28]) , 
+SEG_HEX hex5(//display the HEX on HEX5                                 
+           .iDIG(4'hf), 
            .oHEX_D(HEX5)
            );
 
@@ -185,7 +185,7 @@ end
 reg [15:0] test_data;
 reg        data_send;
 wire       tx_busy;
-always @(posedge CLOCK_50 )
+always @(posedge CLOCK_50)
   begin
       if(KEY[0]) begin
 	        	test_data <= 16'd0;
@@ -202,17 +202,17 @@ end
 
 
 IR_TRANSMITTER_Terasic  u_tx(
-
-        .iCLK_50(CLOCK_50),
-        .iRST_n(1'b1),
+        .clk(CLOCK_50),
+        .rst_n(1'b1),
 		.clk_38(clk_38),
-        .iADDRESS(test_data[15:8]), // 8bits Address 
-        .iCOMMAND(test_data[7:0]),  // 8bits Command
-		.iSEND(data_send),
-        .oIR_TX_BUSY(tx_busy),
-        .oIRDA(IRDA_TXD)		
+        .addr(8'h86), // 8bits Address 
+        .cmd(8'h12),  // 8bits Command
+		.send(!KEY[1]),
+        .busy(tx_busy),
+        .data_out(IRDA_TXD)		
 );
 
+/*
 wire				ac_data_ready;
 wire	[127:0]		ac_data_out;
 wire	[32:0]		ac_data_len;
@@ -224,5 +224,5 @@ AC_RECEIVER		ac_receiver_inst(
 		.data_out(ac_data_out),
 		.data_len(ac_data_len)
 );
-
+*/
 endmodule
