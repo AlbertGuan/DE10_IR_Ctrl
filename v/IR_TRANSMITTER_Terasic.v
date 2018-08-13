@@ -183,10 +183,13 @@ always @ (posedge clk or negedge rst_n)
 					time_count <= time_count + 1'b1;
 
 			TX_WAIT:
-				if(time_count == TIME_WAIT && 0 == send) 
+				if(time_count == TIME_WAIT) 
 				begin
-					tx_status  <= TX_IDLE;
-					time_count <= 'b0;
+					if (0 == send)
+					begin
+						tx_status  <= TX_IDLE;
+						time_count <= 'b0;
+					end
 				end
 				else
 				    time_count <= time_count + 1'b1;
