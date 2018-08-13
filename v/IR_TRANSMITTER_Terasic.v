@@ -1,16 +1,17 @@
 // NEC protocol.
 module IR_TRANSMITTER_Terasic(
-	input			clk,          //iCLK = 50MHz
-	input			rst_n,
-	input			clk_38,
+	input				clk,          //iCLK = 50MHz
+	input				rst_n,
+	input				clk_38,
 
 	 //Send data will add their inverted data,LSB first(NEC protocol). you can impelement your own format if needed
-	input  [7:0]    addr, // 8bits Address 
-	input  [7:0]    cmd, // 8bits Command
-	input           send,
+	input  [15:0]		addr, // 8bits Address 
+	input  [7:0]		cmd, // 8bits Command
+	input				send,
 
-	output reg      busy,
-	output          data_out	
+	output reg			busy,
+	output				data_out,
+	output reg [7:0]	tx_status
 );
 
 //protocol control.  
@@ -37,7 +38,7 @@ localparam TX_WAIT          = 7;
 // you can impelement a fifo to queue the sending datas.
 reg          oIRDA_out;		
 
-reg [7:0]    tx_status;
+
 reg [31:0]   send_data;		
 reg [5:0]    send_count;
 reg [31:0]   time_count;
@@ -77,8 +78,8 @@ always @ (posedge clk or negedge rst_n)
 		tx_status   <= TX_IDLE;
 		send_data   <= 32'b0;
 		send_count  <= 6'b0;
-		busy <= 1'b0;
-		oIRDA_out <= 1'b0;
+		busy 		<= 1'b0;
+		oIRDA_out 	<= 1'b0;
 	end
 	else
 	begin
@@ -90,11 +91,11 @@ always @ (posedge clk or negedge rst_n)
 					busy <= 1'b1;
 					
 					// User can change the data format if they needed.
-					send_data <= {{addr}, //  Address  LSB first
-								~{addr}, //inverted 
-						  	     {cmd}, //  Command  LSB first
-						     	~{cmd} // inverted 
-				                };
+					send_data <= {
+									~{cmd},		// inverted CMD
+									{cmd},		// Command  LSB first
+									{addr}		// Customized Address
+								};
 					oIRDA_out <= 1'b1; // leader 9ms high start.
 					time_count <= 'b0;
 				end
@@ -135,12 +136,12 @@ always @ (posedge clk or negedge rst_n)
 				else 
 				begin
 				  	send_count <= send_count + 1'b1;
-					if(send_data[31])
+					if(send_data[0])
 						tx_status  <=  TX_1;
 					else
 						tx_status  <=  TX_0;
-					send_data <= {send_data[30:0],1'b0};
-					oIRDA_out <= 1'b1; //
+					send_data <= {1'b0, send_data[31:1]};
+					oIRDA_out <= 1'b1;
 				end
 			
 			TX_0: // send data 0
@@ -165,7 +166,7 @@ always @ (posedge clk or negedge rst_n)
 				end
 				else if(time_count == PULSE_DUR) 
 				begin
-					oIRDA_out       <= 1'b0; 
+					oIRDA_out	<= 1'b0; 
 				    time_count <= time_count + 1'b1;
 				end
 				else

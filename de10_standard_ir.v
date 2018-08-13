@@ -103,7 +103,7 @@ assign reset_n = 1'b1;
 ///////////////////////////////////////////
 
 
-assign  LEDR = SW;
+//assign  LEDR = SW;
 
 ///////////////////////////////////////////////////////////////////
 //=============================================================================
@@ -205,11 +205,12 @@ IR_TRANSMITTER_Terasic  u_tx(
         .clk(CLOCK_50),
         .rst_n(1'b1),
 		.clk_38(clk_38),
-        .addr(8'h86), // 8bits Address 
+        .addr(16'h6b86), // 8bits Address 
         .cmd(8'h12),  // 8bits Command
 		.send(!KEY[1]),
         .busy(tx_busy),
-        .data_out(IRDA_TXD)		
+        .data_out(IRDA_TXD),
+		.tx_status(LEDR[7:0])
 );
 
 /*
