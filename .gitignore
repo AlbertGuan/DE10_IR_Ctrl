@@ -37,6 +37,7 @@ timing
 *.qar
 *.qarlog
 *.qws
+*.rbf
 *.rpt
 *.smsg
 *.sof

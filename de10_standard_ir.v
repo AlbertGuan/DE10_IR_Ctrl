@@ -1,4 +1,3 @@
-
 /*
 Code for making a IR transmitter & receiver follow NEC protocol based on Terasic demo
 More details on NEC protocol can be found at:
@@ -185,19 +184,20 @@ end
 reg [15:0] test_data;
 reg        data_send;
 wire       tx_busy;
-always @(posedge CLOCK_50)
-  begin
-      if(KEY[0]) begin
-	        	test_data <= 16'd0;
-	         data_send <= 1'b0;
-		end else begin
-			  if ( (!tx_busy) ) begin
-			    data_send <= 1'b1;
-				 test_data <= test_data + 1'b1;
-			  end else begin
-			  	 data_send <= 1'b0;
-			  end
-     end
+always @(posedge CLOCK_50) begin
+	if(KEY[0]) begin
+	   	test_data <= 16'd0;
+		data_send <= 1'b0;
+	end
+	else begin
+		if ( (!tx_busy) ) begin
+			data_send <= 1'b1;
+			test_data <= test_data + 1'b1;
+		end
+		else begin
+			data_send <= 1'b0;
+		end
+	end
 end
 
 
@@ -205,7 +205,7 @@ IR_TRANSMITTER_Terasic  u_tx(
         .clk(CLOCK_50),
         .rst_n(1'b1),
 		.clk_38(clk_38),
-        .addr(16'h6b86), // 8bits Address 
+        .addr(8'h86), // 8bits Address 
         .cmd(8'h12),  // 8bits Command
 		.send(!KEY[1]),
         .busy(tx_busy),

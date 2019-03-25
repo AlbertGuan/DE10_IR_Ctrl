@@ -5,7 +5,7 @@ module IR_TRANSMITTER_Terasic(
 	input				clk_38,
 
 	 //Send data will add their inverted data,LSB first(NEC protocol). you can impelement your own format if needed
-	input  [15:0]		addr, // 8bits Address 
+	input  [7:0]		addr, // 8bits Address 
 	input  [7:0]		cmd, // 8bits Command
 	input				send,
 
@@ -22,6 +22,7 @@ parameter LEADER_LOW_DUR    =  225000;	 //     225000 *0.02us = 4.5ms
 parameter DATA_HIGH_DUR     =  112500;	 //     112500 *0.02us = 2.25ms
 parameter DATA_LOW_DUR      =  56250;	 //     56250 *0.02us  = 1.125ms
 parameter PULSE_DUR         =  28125;	 //     28125 *0.02us  = 562.25us
+parameter CARRIER_FREQ_FLIP =  658;		 //		50M / 38K / 2 = 658
 // user define
 parameter TIME_WAIT         =  1125000;	 //     22.5ms // add this wait time for make sure .this sending period doesn't disturb the next 
 
@@ -48,17 +49,13 @@ reg [31:0]   time_count;
 reg [9:0]    clk_38K_count;
 reg          clk_38K;
 // duty cycle 1/3
-always @ (posedge clk or negedge rst_n)
- begin
-    if(!rst_n) 
-	begin
+always @ (posedge clk or negedge rst_n) begin
+    if(!rst_n) begin
 		clk_38K <= 1'b0;
 	    clk_38K_count <= 'b0;
 	end 
-	else
-	begin
-		if(clk_38K_count == 658)
-		begin
+	else begin
+		if(clk_38K_count == CARRIER_FREQ_FLIP) begin
 			clk_38K <= ~clk_38K;
 			clk_38K_count <= 'b0;
 		end
@@ -70,10 +67,8 @@ end
 assign data_out = oIRDA_out & clk_38K;
 
 //  tx state machine
-always @ (posedge clk or negedge rst_n)
- begin 
-    if(!rst_n)
-	begin
+always @ (posedge clk or negedge rst_n) begin 
+    if(!rst_n) begin
 		time_count  <= 'b0;
 		tx_status   <= TX_IDLE;
 		send_data   <= 32'b0;
@@ -81,35 +76,32 @@ always @ (posedge clk or negedge rst_n)
 		busy 		<= 1'b0;
 		oIRDA_out 	<= 1'b0;
 	end
-	else
-	begin
+	else begin
 	    case(tx_status) 
 			TX_IDLE:   
-				if(send) 
-				begin
-				    tx_status   <= TX_LEDAER_HIGH;
+				if(send) begin
+				    tx_status <= TX_LEDAER_HIGH;
 					busy <= 1'b1;
 					
 					// User can change the data format if they needed.
 					send_data <= {
 									~{cmd},		// inverted CMD
 									{cmd},		// Command  LSB first
+									~{addr},
 									{addr}		// Customized Address
 								};
 					oIRDA_out <= 1'b1; // leader 9ms high start.
 					time_count <= 'b0;
 				end
-				else
-				begin
+				else begin
 					oIRDA_out <= 1'b0;
 					busy <= 1'b0;
 					send_data   <= 'b0;
 					time_count  <= 'b0;
 				end
 			
-			TX_LEDAER_HIGH: // send leader code    9ms high + 4.5ms low
-				if(time_count == LEADER_HIGH_DUR) 
-				begin
+			TX_LEDAER_HIGH: // send leader code    9ms high
+				if(time_count == LEADER_HIGH_DUR) begin
 					time_count  <= 'b0;
 					tx_status   <= TX_LEDAER_LOW;
 					oIRDA_out   <= 1'b0; //
@@ -118,8 +110,7 @@ always @ (posedge clk or negedge rst_n)
 					time_count <= time_count + 1'b1;
 
 			TX_LEDAER_LOW: // send leader code    4.5ms low
-				if(time_count == LEADER_LOW_DUR) 
-				begin
+				if(time_count == LEADER_LOW_DUR) begin
 					time_count  <= 'b0;
 					tx_status   <= TX_DATA;
 				end
@@ -127,14 +118,12 @@ always @ (posedge clk or negedge rst_n)
 					time_count <= time_count + 1'b1;
 				  
 			TX_DATA:  // ADDRESS + /ADDRESS + DATA + /DATA  ,LSB first.  
-			    if(send_count[5])
-				begin  // all datas sent.
+			    if(send_count[5]) begin  // all datas sent.
 					send_count <= 6'b0;
-				    tx_status  <=  TX_STOP;
+				    tx_status  <= TX_STOP;
 					oIRDA_out  <= 1'b1; 
 				end
-				else 
-				begin
+				else begin
 				  	send_count <= send_count + 1'b1;
 					if(send_data[0])
 						tx_status  <=  TX_1;
@@ -172,9 +161,8 @@ always @ (posedge clk or negedge rst_n)
 				else
 				    time_count <= time_count + 1'b1;
 
-			TX_STOP:
-				if(time_count == PULSE_DUR) 
-				begin
+			TX_STOP: //Final 562.5us pulse burst to signify the end of message transition
+				if(time_count == PULSE_DUR) begin
 					oIRDA_out  <= 1'b0; 
 					tx_status  <= TX_WAIT;
 					time_count <= 'b0;

@@ -5,11 +5,11 @@
 //Logical '1': 562.5us high + 1.6875ms low
 //Note: the signal received by the IR receiver is inverted!!
 module IR_RECEIVE(
-					input 					clk,         //clk 50MHz
-					input						rst_n,       //reset					
-					input						data_in,        //IR code input
-					output 	reg			data_ready,  //data ready
-					output	reg[31:0]	data_out    //decode data output
+					input 					clk,			//clk 50MHz
+					input					rst_n,			//reset					
+					input					data_in,        //IR code input
+					output 	reg				data_ready,		//data ready
+					output	reg[31:0]		data_out		//decode data output
 					);
 
 //=======================================================
